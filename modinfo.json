@@ -1,0 +1,13 @@
+{
+    "type": "code",
+    "modid": "craftinggridhunger",
+    "name": "Crafting Grid Hunger",
+    "authors": [
+        "DavidLokison"
+    ],
+    "description": "Adds a hunger penalty for using the crafting grid as a bonus inventory",
+    "version": "1.0.0",
+    "dependencies": {
+        "game": ""
+    }
+}
