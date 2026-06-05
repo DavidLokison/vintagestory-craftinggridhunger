@@ -1,3 +1,4 @@
+using System;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
@@ -6,16 +7,35 @@ namespace CraftingGridHunger.ModContent
 {
     public class ModSystemCraftingGridHunger : ModSystem
     {
-        ICoreAPI? api;
+        CraftingGridHungerConfig? config;
 
         public override bool ShouldLoad(EnumAppSide forSide)
         {
-            return true;
+            return forSide == EnumAppSide.Server;
         }
 
         public override void Start(ICoreAPI api)
         {
-            this.api = api;
+            TryLoadConfig(api);
+        }
+
+        private void TryLoadConfig(ICoreAPI api) 
+        {
+            try
+            {
+                config = api.LoadModConfig<CraftingGridHungerConfig>("CraftingGridHunger.json");
+                if (config == null)
+                {
+                    config = new CraftingGridHungerConfig();
+                    api.StoreModConfig<CraftingGridHungerConfig>(config, "CraftingGridHunger.json");
+                }
+            }
+            catch (Exception e)
+            {
+                Mod.Logger.Error("Could not load config! Loading default settings instead.");
+                Mod.Logger.Error(e);
+                config = new CraftingGridHungerConfig();
+            }
         }
 
         public override void StartServerSide(ICoreServerAPI api)
@@ -35,13 +55,14 @@ namespace CraftingGridHunger.ModContent
 
         private void updateHungerStat(IInventory inv, IServerPlayer player)
         {
+            if (config == null) return;
             StatModifiers allmod = new StatModifiers();
 
             foreach (var slot in inv)
             {
                 if (slot.Empty) continue;
                 if (inv.GetSlotId(slot) == 9) continue;
-                allmod.hungerrate += 0.1f;
+                allmod.hungerrate += config.HungerPenaltyPerOccupiedSlot;
             }
 
             EntityPlayer entity = player.Entity;
